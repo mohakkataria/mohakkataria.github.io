@@ -1,9 +1,11 @@
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Rate Limiting with nginx</title>
-    <meta name="description" content="Insight into how nginx can be used for API/web level rate limitting. By : Mohak Kataria">
+    <title>Rate Limiting with Nginx</title>
+    <meta name="description" content="Insight into how nginx can be used for API/web level rate limiting. 
+By : Mohak Kataria">
 
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,22 +19,24 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
     <link rel="amphtml" href="amp/index.html">
     
-    <meta property="og:site_name" content="Learnings of a Software Engineer">
+    <meta property="og:site_name" content="Erudition">
     <meta property="og:type" content="article">
-    <meta property="og:title" content="Rate Limiting with nginx">
-    <meta property="og:description" content="Insight into how nginx can be used for API/web level rate limitting. By : Mohak Kataria">
-    <meta property="og:url" content="http://localhost:2368/rate-limiting-with-nginx-reverse-proxied-services/">
+    <meta property="og:title" content="Rate Limiting with Nginx">
+    <meta property="og:description" content="Insight into how nginx can be used for API/web level rate limiting. 
+By : Mohak Kataria">
+    <meta property="og:url" content="http://localhost:2368/rate-limiting-with-nginx/">
     <meta property="og:image" content="http://localhost:2368/content/images/2017/06/kibana42_apache.jpg">
-    <meta property="article:published_time" content="2017-06-14T17:23:00.000Z">
-    <meta property="article:modified_time" content="2017-06-16T10:52:10.000Z">
+    <meta property="article:published_time" content="2017-06-10T17:23:00.000Z">
+    <meta property="article:modified_time" content="2017-06-19T06:08:42.000Z">
     <meta property="article:tag" content="nginx">
     <meta property="article:tag" content="devops">
     <meta property="article:tag" content="api">
     
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Rate Limiting with nginx">
-    <meta name="twitter:description" content="Insight into how nginx can be used for API/web level rate limitting. By : Mohak Kataria">
-    <meta name="twitter:url" content="http://localhost:2368/rate-limiting-with-nginx-reverse-proxied-services/">
+    <meta name="twitter:title" content="Rate Limiting with Nginx">
+    <meta name="twitter:description" content="Insight into how nginx can be used for API/web level rate limiting. 
+By : Mohak Kataria">
+    <meta name="twitter:url" content="http://localhost:2368/rate-limiting-with-nginx/">
     <meta name="twitter:image" content="http://localhost:2368/content/images/2017/06/kibana42_apache.jpg">
     <meta name="twitter:label1" content="Written by">
     <meta name="twitter:data1" content="Mohak Kataria">
@@ -47,7 +51,7 @@
     "@type": "Article",
     "publisher": {
         "@type": "Organization",
-        "name": "Learnings of a Software Engineer",
+        "name": "Erudition",
         "logo": "http://localhost:2368/ghost/img/ghosticon.jpg"
     },
     "author": {
@@ -65,10 +69,10 @@
         ],
         "description": "Thoughts, ideas and experiences of a software engineer :)"
     },
-    "headline": "Rate Limiting with nginx",
-    "url": "http://localhost:2368/rate-limiting-with-nginx-reverse-proxied-services/",
-    "datePublished": "2017-06-14T17:23:00.000Z",
-    "dateModified": "2017-06-16T10:52:10.000Z",
+    "headline": "Rate Limiting with Nginx",
+    "url": "http://localhost:2368/rate-limiting-with-nginx/",
+    "datePublished": "2017-06-10T17:23:00.000Z",
+    "dateModified": "2017-06-19T06:08:42.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "http://localhost:2368/content/images/2017/06/kibana42_apache.jpg",
@@ -76,7 +80,7 @@
         "height": 338
     },
     "keywords": "nginx, devops, api",
-    "description": "Insight into how nginx can be used for API/web level rate limitting. By : Mohak Kataria",
+    "description": "Insight into how nginx can be used for API/web level rate limiting. \nBy : Mohak Kataria",
     "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": "http://localhost:2368"
@@ -85,7 +89,7 @@
     </script>
 
     <meta name="generator" content="Ghost 0.11">
-    <link rel="alternate" type="application/rss+xml" title="Learnings of a Software Engineer" href="../rss.9">
+    <link rel="alternate" type="application/rss+xml" title="Erudition" href="../rss.10">
     <script>
     var decentThemeConfig = {
         ga: 'UA-47272161-2',
@@ -104,8 +108,8 @@
 
 <header class="main-header image-bg detail-page has-cover" style="background-image: url(../content/images/2017/06/kibana42_apache.jpg)">
     <a href="../" class="go-home-page" style="background-image:url(/assets/assets/go-home.png?v=58527b6eb1"></a>
-    <h1 class="page-title"><a href="../">Learnings of a Software Engineer</a></h1>
-    <h2 class="page-description">Thoughts, stories and ideas.</h2>
+    <h1 class="page-title"><a href="../">Erudition</a></h1>
+    <h2 class="page-description">Thoughts, learnings and wisdom of a Software Engineer.</h2>
     <div class="nav">
     <ul>
             <li class="nav-home" role="presentation"><a href="../">Home</a></li>
@@ -119,19 +123,17 @@
     <article class="post tag-nginx tag-devops tag-api single-post">
 
         <header class="post-header short-diver">
-            <h1 class="post-title">Rate Limiting with Nginx Reverse Proxied Services</h1>
+            <h1 class="post-title">Rate Limiting with Nginx</h1>
             <section class="post-meta">
-                Published at <time class="post-date" datetime="2017-06-14">14 June 2017</time>, 
-                updated at <time class="post-date" datetime="2017-06-16">16 June 2017</time>
+                Published at <time class="post-date" datetime="2017-06-10">10 June 2017</time>, 
+                updated at <time class="post-date" datetime="2017-06-19">19 June 2017</time>
                 <br>
                  on <a href="../tag/nginx/">nginx</a>, <a href="../tag/devops/">devops</a>, <a href="../tag/api/">api</a>
             </section>
         </header>
 
         <section class="post-content short-diver">
-            <p>In this article, I will be explaining as to how can one use nginx for rate limitting the traffic to your website/API. This will also work even when using behind a load balancer or when nginx is being used as one, till the actual IPs are passed in headers to nginx for it to differentiate between requests from different hosts.</p>
-
-<p>A prerequisite for this article would be to know the term “Reverse Proxy” and know what Nginx is and how Nginx is used for reverse proxying. In case the reader is not clear on such things, here is a small list of resources which can help you with that :</p>
+            <p>Now that you have landed at this article after reading the headline, I assume that you already know what Nginx is and why is it used in front of our backend servers/services as a reverse proxying agent. Well, in case you still landed at this article without that knowledge, fret not as I am attaching a small list of resources which can help you with that :</p>
 
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/Reverse_proxy">Wikipedia - Reverse Proxy</a></li>
@@ -139,9 +141,9 @@
 <li><a href="http://www.jscape.com/blog/bid/87783/Forward-Proxy-vs-Reverse-Proxy">Forward v/s Reverse Proxy</a></li>
 </ul>
 
-<p>Now that we know the basics, let's deep dive into how can we add rate limiting using nginx. It is useful, if your site is hammered by a bot doing multiple requests per second and thus increasing your server load. With the <code>ngx_http_limit_req_module</code> we can define a rate limit, and if a visitor exceeds this rate, he will get a 503 error. The rate limiting is performed via "Leaky Bucket" algorithm usually employed in computer networks with bandwidth limitations. </p>
+<p>So now we are at a place where we can start with the real deal of learning as to how can one use nginx for rate limiting the traffic to your website/API. This will also work even when using behind a load balancer or when nginx is being used as one, till the actual IPs are passed in headers to nginx for it to differentiate between requests from different hosts. It is useful, if your site is hammered by a bot doing multiple requests per second and thus increasing your server load. With the <code>ngx_http_limit_req_module</code> you can define a rate limit, and if a visitor exceeds this rate, he will get a 503 error. The rate limiting is performed via "<a href="https://en.wikipedia.org/wiki/Leaky_bucket">Leaky Bucket</a>" algorithm usually employed in computer networks with bandwidth limitations. </p>
 
-<p>To start with, we first define a <code>limit_req_zone</code> in our nginx.conf as shown below :</p>
+<p>To start with, we first define a <code>limit_req_zone</code> in our nginx.conf as shown below. Now if you ask why is that necessary, the answer to that would be, Computer Science &amp; Logic 101 : We need to solve a problem of limiting traffic to an IP based on the traffic, but we need to know what the traffic is corresponding to every IP and then compute on the data basis our business need/logic as to when to limit the resources to that IP.</p>
 
 <pre><code class="language-http">    http {
         limit_req_zone $binary_remote_addr zone=test:20m rate=10r/s;
@@ -181,6 +183,8 @@
 2016/10/20 17:28:47 [error] 30347#0: *55 limiting requests, excess: 5.200 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/test/results/?keyword=" 
 2016/10/20 17:28:48 [error] 30347#0: *55 limiting requests, excess: 5.567 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/search/results/?keyword=" 
 </pre>
+
+<p>With this basic configuration, we have enabled rate limiting on our service. Wasn't it too simple? :)</p>
 
 <div class="tip">  
 PS : Don't forget to reload nginx after adding or making changes to configuration files for them to take effect using command :  
@@ -270,7 +274,7 @@ PS : Don't forget to reload nginx after adding or making changes to configuratio
 
 
                 <footer class="site-footer">
-                    <p class="copyright"><a href="../">Learnings of a Software Engineer</a> © 2017 | <a href="../rss.9">RSS Feed</a></p>
+                    <p class="copyright"><a href="../">Erudition</a> © 2017 | <a href="../rss.10">RSS Feed</a></p>
                 </footer>
 
             </div>
