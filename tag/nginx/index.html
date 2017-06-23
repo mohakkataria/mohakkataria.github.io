@@ -11,7 +11,7 @@
 
     <link rel="shortcut icon" href="../../favicon.ico">
 
-    <link rel="stylesheet" type="text/css" href="../../assets/css/screen.css?v=d607116790">
+    <link rel="stylesheet" type="text/css" href="../../assets/css/screen.css?v=3c13e6f528">
     <link href="https://fonts.googleapis.com/css?family=Mrs+Saint+Delafield%7CMerriweather:300italic,700,300,700italic%7COpen+Sans:400,700" rel="stylesheet" type="text/css">
 
     <link rel="canonical" href="index.html">
@@ -47,10 +47,14 @@
     <meta name="generator" content="Ghost 0.11">
     <link rel="alternate" type="application/rss+xml" title="Erudition" href="../../rss.1">
     <script>
-    var decentThemeConfig = {
-        ga: 'UA-47272161-2',
-        disqus: 'mohakkataria-github-io'
-    };
+    if (window.location.hostname != "localhost") {
+        var decentThemeConfig = {
+            ga: 'UA-47272161-2',
+            disqus: 'mohakkataria-github-io'
+        };
+    } else {
+        var decentThemeConfig = {};
+    }
 </script>
 </head>
 <body class="tag-template tag-nginx">
@@ -61,7 +65,7 @@
 
                 
 <header class="main-header tag-head detail-page image-bg has-cover" style="background-image: url(../../content/images/2017/06/keyboard-hi-tech-l.jpg)">
-    <a href="../../" class="go-home-page" style="background-image:url(/assets/assets/go-home.png?v=d607116790"></a>
+    <a href="../../" class="go-home-page" style="background-image:url(/assets/assets/go-home.png?v=3c13e6f528"></a>
     <h1 class="page-title">nginx</h1>
     <h2 class="page-description">
             A 1-post collection
@@ -111,6 +115,6 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="../../assets/js/bundle.min.js?v=d607116790"></script>
+    <script type="text/javascript" src="../../assets/js/bundle.min.js?v=3c13e6f528"></script>
     
 </body>
