@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url> <loc>https://mohakkataria.github.io/tag/getting-started</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
 <url> <loc>https://mohakkataria.github.io/tag/nginx</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
 <url> <loc>https://mohakkataria.github.io/tag/devops</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
 <url> <loc>https://mohakkataria.github.io/tag/api</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
+<url> <loc>https://mohakkataria.github.io/tag/tcp</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
+<url> <loc>https://mohakkataria.github.io/tag/zomato</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
+<url> <loc>https://mohakkataria.github.io/tag/devops</loc> <changefreq>daily</changefreq> <priority>0.3</priority> </url>
 </urlset>

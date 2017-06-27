@@ -1,0 +1,327 @@
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>TCP Connection 101</title>
+    <meta name="description" content="A concise documentation on TCP Connection States. By : Mohak Kataria">
+
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="../favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="../assets/css/screen.css?v=a11ef0a852">
+    <link href="https://fonts.googleapis.com/css?family=Mrs+Saint+Delafield%7CMerriweather:300italic,700,300,700italic%7COpen+Sans:400,700" rel="stylesheet" type="text/css">
+
+    <link rel="canonical" href="index.html">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <link rel="amphtml" href="amp/index.html">
+    
+    <meta property="og:site_name" content="Erudition">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="TCP Connection 101">
+    <meta property="og:description" content="A concise documentation on TCP Connection States. By : Mohak Kataria">
+    <meta property="og:url" content="https://mohakkataria.github.io/tcp-connection-101/">
+    <meta property="article:published_time" content="2017-06-27T11:29:46.000Z">
+    <meta property="article:modified_time" content="2017-06-27T11:29:46.000Z">
+    <meta property="article:tag" content="devops">
+    <meta property="article:tag" content="tcp">
+    <meta property="article:tag" content="zomato">
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="TCP Connection 101">
+    <meta name="twitter:description" content="A concise documentation on TCP Connection States. By : Mohak Kataria">
+    <meta name="twitter:url" content="https://mohakkataria.github.io/tcp-connection-101/">
+    <meta name="twitter:label1" content="Written by">
+    <meta name="twitter:data1" content="Mohak Kataria">
+    <meta name="twitter:label2" content="Filed under">
+    <meta name="twitter:data2" content="devops, tcp, zomato">
+    
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Erudition",
+        "logo": "https://mohakkataria.github.io/ghost/img/ghosticon.jpg"
+    },
+    "author": {
+        "@type": "Person",
+        "name": "Mohak Kataria",
+        "image": {
+            "@type": "ImageObject",
+            "url": "https://mohakkataria.github.io/content/images/2017/06/pic.png",
+            "width": 551,
+            "height": 571
+        },
+        "url": "https://mohakkataria.github.io/author/mohak/",
+        "sameAs": [
+            "https://mohakkataria.github.io"
+        ],
+        "description": "A techie at heart with a knack for learning. 2+ years experience backend engineer on Search/ContentTech/Payments/PCI@Zomato. Striving for new adventures to come :)"
+    },
+    "headline": "TCP Connection 101",
+    "url": "https://mohakkataria.github.io/tcp-connection-101/",
+    "datePublished": "2017-06-27T11:29:46.000Z",
+    "dateModified": "2017-06-27T11:29:46.000Z",
+    "keywords": "devops, tcp, zomato",
+    "description": "A concise documentation on TCP Connection States. By : Mohak Kataria",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://mohakkataria.github.io"
+    }
+}
+    </script>
+
+    <meta name="generator" content="Ghost 0.11">
+    <link rel="alternate" type="application/rss+xml" title="Erudition" href="../rss.1">
+    <script>
+    if (window.location.hostname != "localhost") {
+        var decentThemeConfig = {
+            ga: 'UA-47272161-2',
+            disqus: 'mohakkataria-github-io'
+        };
+    } else {
+        var decentThemeConfig = {};
+    }
+</script>
+<meta name="msvalidate.01" content="6ADC531DB8AED55CFA0BCD4A016BACA4">
+</head>
+<body class="post-template tag-devops tag-tcp tag-zomato">
+
+    <div id="html-wrapper">
+        <div id="html">
+            <div class="site-wrapper">
+
+                
+
+
+<header class="main-header image-bg detail-page no-cover">
+    <a href="../" class="go-home-page" style="background-image:url(/assets/assets/go-home.png?v=a11ef0a852"></a>
+    <h1 class="page-title"><a href="../">Erudition</a></h1>
+    <h2 class="page-description">Thoughts, learnings and wisdom of a Software Engineer.</h2>
+    <div class="nav">
+    <ul>
+            <li class="nav-home" role="presentation"><a href="https://mohakkataria.github.io">Home</a></li>
+            <li class="nav-linkedin" role="presentation"><a href="https://www.linkedin.com/in/mohak-kataria/">Linkedin</a></li>
+            <li class="nav-about-me" role="presentation"><a href="https://mohakkataria.github.io/author/mohak/">About Me</a></li>
+    </ul>
+</div>
+
+</header>
+
+
+<main class="content" role="main">
+    <article class="post tag-devops tag-tcp tag-zomato single-post">
+
+        <header class="post-header short-diver">
+            <h1 class="post-title">TCP Connection 101</h1>
+            <section class="post-meta">
+                Published at <time class="post-date" datetime="2017-06-27">27 June 2017</time>, 
+                updated at <time class="post-date" datetime="2017-06-27">27 June 2017</time>
+                <br>
+                 on <a href="../tag/devops/">devops</a>, <a href="../tag/tcp/">tcp</a>, <a href="../tag/zomato/">zomato</a>
+            </section>
+        </header>
+
+        <section class="post-content short-diver">
+            <p>You must have heard of TCP somewhere or the other is you have been engaged with API development and have basic knowledge as to how the code you write works on the web. But the deeper knowledge is how the data for request and the response is transferred across servers. Well Transmission Control Protocol a.k.a. TCP comes to rescue. For those well versed with <a href="https://en.wikipedia.org/wiki/OSI_model">OSI model</a>, it is a protocol for Transport Layer. Nearly every Internet-connected device “talks” TCP and the whole Internet relies on it.</p>
+
+<h3 id="tcpconnectionstates">TCP Connection States</h3>
+
+<p>The most common states are : <code>LISTEN</code>, <code>CLOSED</code> and <code>ESTABLISHED</code>. Most of the developers don’t know and also don't need to know more about TCP states, because this is what any application really cares about. However, a lot of stuff happens behind the scenes in the lifecycle of a TCP connection.</p>
+
+<p>In case you want to view all the tcp connections on your system, you can use <code>netstat</code> or <code>ss</code> as :</p>
+
+<pre><code>$ netstat -t
+Active Internet connections (w/o servers)  
+Proto Recv-Q Send-Q Local Address           Foreign Address         State  
+tcp        0      0 localhost:49667         localhost:afs3-kaserver ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-233.ap-:39441 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-185.ap-:54707 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-25.ap-s:33442 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27302 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-143.ap-s:7890 ESTABLISHED  
+tcp        0      0 ip-10-0-7-244.ap-:33510 ip-10-0-2-189.ap-:27017 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-185.ap-:54739 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-143.ap-s:7892 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27118 ESTABLISHED  
+tcp        0      0 ip-10-0-7-244.ap-:32902 collector-4.newre:https TIME_WAIT  
+tcp        0      0 ip-10-0-7-244.ap-:57817 collector-2.newre:https TIME_WAIT  
+tcp        0      0 localhost:40494         localhost:afs3-vlserver ESTABLISHED  
+tcp        0      0 localhost:50019         localhost:afs3-kaserver ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27304 TIME_WAIT  
+...
+
+$ss -t
+State      Recv-Q Send-Q   Local Address:Port           Peer Address:Port  
+ESTAB      0      0        127.0.0.1:49667              127.0.0.1:afs3-kaserver  
+ESTAB      0      0        10.0.7.244:afs3-fileserver   10.0.7.233:41267  
+ESTAB      0      0        10.0.7.244:afs3-fileserver   10.0.7.233:39441  
+...
+</code></pre>
+
+<h5 id="connectioninitiation">Connection Initiation</h5>
+
+<p>Connection initiation is a <mark>three-way handshake</mark>. Let's say that the party which initiates the connection is the client and the one that accepts the connection is the server.</p>
+
+<ul>
+<li>Prerequisite : A server with a listener. The listener will listen on incoming connections on a specific port. This state is represented as <code>LISTEN</code>.</li>
+<li>The client sends a <code>SYN</code> packet to the server and changes it's own state to  <code>SYN-SENT</code>.</li>
+<li>The server will then acknowledge the <code>SYN</code> and send a <code>SYN-ACK</code> in response to the client. </li>
+<li>The client on receipt of <code>SYN-ACK</code> changes its connection state to  <code>SYN-RECEIVED</code>.</li>
+<li>If everything worked properly, the client will reply with an acknowledgement <code>ACK</code> and then the connection is marked as <code>ESTABLISHED</code> on both end-points.</li>
+</ul>
+
+<p><a href="https://blog.confirm.ch/tcp-connection-states/"><img src="../content/images/2017/06/imgonline-com-ua-progressiveh5h0pu3pFm4g.jpg" alt="" title=""></a><sup id="fnref:1"><a href="index.html#fn:1" rel="footnote">1</a></sup></p>
+
+<h5 id="datatransfer">Data Transfer</h5>
+
+<p>Now the data transfer can happen between client and the server. Each party sends some data in packets and the other party responds with acknowledgement <code>ACK</code> for the data packet received.</p>
+
+<h5 id="connectiontermination">Connection Termination</h5>
+
+<p>Either of client or server can terminate the connection if they are finished with the data exchange or timeout happens or variety of other reasons. However, it can not be dropped because their other end-point needs to know about the termination. Terminating a connection is a <mark>four-way handshake</mark>. And because each end-point is terminating the connection independently. It doesn’t matter which end-point starts the termination, because both of them will change their states accordingly with the information being sent to the other party about termination. Let's assume the client starts the termination.  </p>
+
+<p><a href="https://blog.confirm.ch/tcp-connection-states/"><img src="../content/images/2017/06/imgonline-com-ua-progressiveAYXURwLHrBFb.jpg" alt="" title=""></a><sup id="fnref:1"><a href="index.html#fn:1" rel="footnote">1</a></sup></p>
+
+<ul>
+<li>The client sends a <code>FIN</code> packet to the server and changes its state to  <code>FIN-WAIT-1</code>.</li>
+<li>The server receives the termination request from the client and responds with an acknowledgement <code>ACK</code>.</li>
+<li>After sending the response, the server will change its state to <code>CLOSE-WAIT</code> state.</li>
+<li>As soon as the client receives this acknowledgement from the server, it will go to the <code>FIN-WAIT-2</code> state.</li>
+</ul>
+
+<p>In the above process, the connection is terminated from a client point of view, the server is yet to terminate its connection. This happens right after the server sent its last <code>ACK</code>.</p>
+
+<ul>
+<li>The server is in the <code>CLOSE-WAIT</code> state and it will independently follow up with a <code>FIN</code>, and updates it's state to <code>LAST-ACK</code>.</li>
+<li>Now the client receives the termination request and replies with an  <code>ACK</code>, which results in a <code>TIME-WAIT</code> state.</li>
+<li>The server is now finished and changes it's connection state to <code>CLOSED</code> immediately.</li>
+<li>The client stays in the <code>TIME-WAIT</code> state for a maximum of four minutes (defined by RFC793 and the maximum segment lifetime, read further for more details) before setting the connection to <code>CLOSED</code> as well.</li>
+</ul>
+
+<h5 id="timewait">TIME-WAIT ???</h5>
+
+<p>Now all this is fairly easy but there might be a question in mind that why is <code>TIME-WAIT</code> necessary ? If both client and server are terminating the connection mutually and gracefully, why does <code>TIME-WAIT</code> exist ?</p>
+
+<p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers. When a duplicate packet from the first connection is delayed in the network and arrives at the second connection when its sequence number is in the second connection’s window, there is no way for the endpoints in the second connection to determine that the delayed packet contains data from the first connection. The situation is shown below : </p>
+
+<p><img src="../content/images/2017/06/fig1.svg" alt=""></p>
+
+<ul>
+<li>TCP avoids this condition by blocking any second connection between these address/port pairs until one can assume that all duplicates must have disappeared. </li>
+<li>Connection blocking is implemented by holding a <code>TIME-WAIT TCB(TCP Control Block)</code> at one endpoint and checking incoming connection requests to ensure that no new connection is established between the blocked addresses and ports. </li>
+<li>The TCB is held for twice the <code>Maximum Segment Lifetime (MSL)</code>. The MSL is defined as the longest period of time that a packet can remain undelivered in the network.</li>
+<li>Originally, the TTL field of an IP packet was the amount of time the packet could remain undelivered, but in practice the field has become a hop count. </li>
+<li>Therefore, the MSL is an estimate rather than a guarantee. Under most conditions waiting 2 x MSL is sufficient to drain duplicates, but they can and do arrive after that time. The chance of a duplicate arriving after 2 x MSL is greater if MSL is smaller.</li>
+</ul>
+
+<p>Check <a href="https://tools.ietf.org/html/draft-faber-time-wait-avoidance-00">this</a> out for more details about the effects of TIME-WAIT on busy servers, persistent connections and avoidance techniques.</p>
+
+<p>I can go into more detail but that tends to be a topic of research in the field of Computer Networks and Communications. Moreover, this article is supposed to act as prequel to an article cum case study on the <code>Effects of TCP states on production traffic</code> as observed during my time at <code>Zomato</code>. So keep tuned for more!!! :)</p>
+
+<hr>
+
+<div class="footnotes"><ol><li class="footnote" id="fn:1"><p><a href="https://blog.confirm.ch/tcp-connection-states/">https://blog.confirm.ch/tcp-connection-states/</a> <a href="index.html#fnref:1" title="return to article">↩</a></p></li></ol></div>
+        </section>
+
+        <footer class="post-footer">
+
+
+            <div class="author-image">
+                <a class="img image-bg" href="../author/mohak/" style="background-image: url(../content/images/2017/06/pic.png)"><span class="hidden">Mohak Kataria's Picture</span></a>
+            </div>
+
+            <section class="author short-diver">
+                <h4 class="author-name"><a href="../author/mohak/">Mohak Kataria</a></h4>
+
+                    <p class="author-bio">A techie at heart with a knack for learning. 2+ years experience backend engineer on Search/ContentTech/Payments/PCI@Zomato. Striving for new adventures to come :)</p>
+                <div class="author-meta">
+                        <li class="author-location">
+                            <a href="https://www.google.com/maps/search/Delhi,%20India" class="icon-location" title="Delhi, India"></a>
+                        </li>
+                        <li class="author-link">
+                            <a class="icon-link" href="https://mohakkataria.github.io" title="https://mohakkataria.github.io"></a>
+                        </li>
+                </div>
+            </section>
+
+
+
+        </footer>
+
+    </article>
+</main>
+
+<div id="disqus_thread" class="comment-container"><p>Comments is loading...</p></div>
+
+<div class="ds-thread comment-container" data-thread-key="" data-title="" data-url=""><p>Comments is loading...</p></div>
+
+<div class="load-comments">
+    <button>Load Comments</button>
+</div>
+
+<aside class="read-next">
+    <a class="read-next-story prev" href="../rate-limiting-with-nginx/">
+        Rate Limiting with Nginx
+    </a>
+
+</aside>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="pswp__bg"></div>
+    <div class="pswp__scroll-wrap">
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+                <footer class="site-footer">
+                    <p class="copyright"><a href="../">Erudition</a> © 2017 | <a href="../rss.1">RSS Feed</a></p>
+                </footer>
+
+            </div>
+
+            <button class="go-to-top"></button>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../assets/js/bundle.min.js?v=a11ef0a852"></script>
+    
+</body>
