@@ -2,4 +2,5 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url> <loc>https://mohakkataria.github.io/rate-limiting-with-nginx</loc> <changefreq>hourly</changefreq> <priority>0.1</priority> </url>
 <url> <loc>https://mohakkataria.github.io/tcp-connection-101</loc> <changefreq>hourly</changefreq> <priority>0.1</priority> </url>
+<url> <loc>https://mohakkataria.github.io/the-curious-case-of-tcp_tw_recycle</loc> <changefreq>hourly</changefreq> <priority>0.1</priority> </url>
 </urlset>
