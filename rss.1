@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title><![CDATA[Erudition]]></title><description><![CDATA[Thoughts, learnings and wisdom of a Software Engineer.]]></description><link>https://mohakkataria.github.io/</link><generator>Ghost 0.11</generator><lastBuildDate>Tue, 04 Jul 2017 07:45:46 GMT</lastBuildDate><atom:link href="https://mohakkataria.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[The Curious Case of "tcp_tw_recycle"]]></title><description><![CDATA[This post describes the use and harmful effects of enabling `tcp_tw_recycle` on linux machines. By : Mohak Kataria]]></description><link>https://mohakkataria.github.io/the-curious-case-of-tcp_tw_recycle/</link><guid isPermaLink="false">42f50cd9-1c2f-4f22-be81-8901ce3c3bde</guid><category><![CDATA[devops]]></category><category><![CDATA[tcp]]></category><category><![CDATA[zomato]]></category><category><![CDATA[networking]]></category><category><![CDATA[freecharge]]></category><dc:creator><![CDATA[Mohak Kataria]]></dc:creator><pubDate>Tue, 04 Jul 2017 07:42:02 GMT</pubDate><media:content url="https://mohakkataria.github.io/content/images/2017/07/imgonline-com-ua-progressivek4qnsHRzcSC0.jpg" medium="image"/><content:encoded><![CDATA[<div class="preface">  
+<div class="tip">  
+    <mark>TL;DR:</mark> do not enable <code>net.ipv4.tcp_tw_recycle</code>.
+</div>  
+
+<img src="https://mohakkataria.github.io/content/images/2017/07/imgonline-com-ua-progressivek4qnsHRzcSC0.jpg" alt="The Curious Case of "tcp_tw_recycle""><p>If you have information regarding <code>TCP</code> states, then this article may be of use to you specifically if you are trying to debug an issue with dropped/timeout traffic involving <code>NAT</code> devices on cloud or own infrastructure alike. But if you are still not conversant with TCP much, read <a href="https://mohakkataria.github.io/tcp-connection-101/">Part-1</a> of this article which touches on the basics. <br>
+</p></div><p></p>
+
+<p>So this incident happened while my time (~November, 2016) at <code>Zomato</code> and we had enabled third party integrations for wallet based payment with <code>FreeCharge</code> for <code>Zomato Order</code>. I was looking after Payments@Zomato back then. We were having a setup wherein a lot(300+ per minute) of outbound connections, mostly wallet balance polling API calls to FreeCharge servers are made to update the Current Balance of a User Active on Zomato App in Online Ordering Flow. And we have a NAT device for all outbound traffic from our payment servers. So there are supposed to be  many TIME_WAIT sockets left in the system of active closer, as I described in my <a href="https://mohakkataria.github.io/tcp-connection-101/">last post</a> at any given time. Now in our case, FreeCharge was the active closer, and was dropping incoming connections from us  randomly, out of the 300+ calls we made to them every minute.</p>
+
+<p>Now there a lot of guides/posts available on internet on tuning systems to allow for higher throughput which also involve changing <code>sysctl</code> configuration changes. And many of those guides would tell you to change the values of <code>tcp_tw_recycle</code> and <code>tcp_tw_reuse</code> to 1.</p>
+
+<p>Now, the Linux kernel documentation is not very helpful about what <code>net.ipv4.tcp_tw_recycle</code> does:</p>
+
+<blockquote>
+  <p>Enable fast recycling <code>TIME-WAIT</code> sockets. Default value is 0. It should not be changed without advice/request of technical experts.</p>
+</blockquote>
+
+<p><code>net.ipv4.tcp_tw_reuse</code> is a little bit more documented but the language is near about the same:</p>
+
+<blockquote>
+  <p>Allow to reuse <code>TIME-WAIT</code> sockets for new connections when it is safe from protocol viewpoint. Default value is 0. It should not be changed without advice/request of technical experts.</p>
+</blockquote>
+
+<p>The direct result of lack of documentation or information about the uses/drawbacks of changing such configuration values is that we find numerous tuning guides advising to set both these settings to 1 to reduce the number of entries in the <code>TIME-WAIT</code> state. However, <a href="https://linux.die.net/man/7/tcp">tcp(7)</a> manual page states the issue about <code>net.ipv4.tcp_tw_recycle</code> option clearly which is a problem hard to detect and waiting to bite you :  </p>
+
+<blockquote>
+  <p>Enable fast recycling of <code>TIME-WAIT</code> sockets. Enabling this option is not recommended since this causes problems when working with NAT (Network Address Translation).</p>
+</blockquote>
+
+<p><img src="https://mohakkataria.github.io/content/images/2017/06/img_6690.png" alt="The Curious Case of "tcp_tw_recycle"" title="">  </p>
+
+<p>So let's try to understand the problem now and try to correct other people on Internet. :)</p>
+
+<h3 id="whatistcp_tw_recycleusedfor">What is <code>tcp_tw_recycle</code> used for ?</h3>
+
+<p>There are mainly two reasons of using this option :</p>
+
+<ul>
+<li><p>While <code>tcp_tw_recycle</code> option significantly shortens the length of time that a socket must stay in the <code>TIME_WAIT</code> state. But as we know from <code>TCP</code> Connection lifecycle, a socket in the <code>TIME_WAIT</code> state is unable to accept a new connection until the <code>TIME_WAIT</code> period expires. Too many sockets in <code>TIME_WAIT</code> on a busy server can eventually cause <mark>port exhaustion</mark>, preventing any new connections from being formed until some of the <code>TIME_WAIT</code> periods expire.</p></li>
+<li><p><code>tcp_tw_recycle</code> is able to provide the same protection which <code>TIME_WAIT</code> offers by making use of <mark>TCP Timestamps</mark>, specified in <a href="https://www.ietf.org/rfc/rfc1323.txt">RFC 1323</a>.</p></li>
+</ul>
+
+<p>Basically, the active closer remembers the last timestamp value sent by the <mark>client’s IP address</mark>. If a new connection is received where the TCP timestamp is larger than the last recorded timestamp, then we can be sure that the packet is new, not an old duplicate. If the packet has a Timestamp value older than the last noted, then we can safely assume that the packet is from an old connection and should be deemed to be dropped. Technically, <a href="https://tools.ietf.org/html/rfc1122">RFC 1122</a> states:</p>
+
+<blockquote>
+  <p>When a connection is closed actively, it MUST linger in <code>TIME_WAIT</code> state for a time <code>2*MSL</code> (Maximum Segment Lifetime). However, it MAY accept a new <code>SYN</code> > from the remote TCP to reopen the connection directly from <code>TIME_WAIT</code> state, if it:</p>
+  
+  <p>(1) assigns its initial sequence number for the new connection to be larger than the largest sequence number it used on the previous connection incarnation, and</p>
+  
+  <p>(2) returns to <code>TIME_WAIT</code> state if the <code>SYN</code> turns out to be an old duplicate.</p>
+</blockquote>
+
+<h3 id="thefeudofnatwithtcp_tw_recycle">The feud of NAT with <code>tcp_tw_recycle</code></h3>
+
+<p>As highlighted in previous section, the last seen timestamp is recorded per IP address. Now when multiple client machines are behind a <code>NAT</code>, it can pose a serious trouble, since all of them will have same source IP from server's point of view.</p>
+
+<p>Moreover, TCP timestamp values are generated pseudo-randomly, so each device on the network will have a different timestamp value which can lead to some devices behind a shared IP address passing the <code>tcp_tw_recycle</code> test and others failing and being unable to connect. So, at the end it's all random, which somehow happened to be our case too, wherein out of the two machines which were behind the NAT device, requests from either of them C would fail in random fashion. To explain all this is a simple manner, let us consider the following example :</p>
+
+<ul>
+<li>Client 1 and 2 are behind a firewall with NAT.</li>
+<li>Client 1 makes a successful web request to a WebServer A which has <code>tcp_tw_recycle</code> enabled. Note, that since NAT is enabled, for WebServer A, the request seem to come from Source IP of A, instead of either of client.</li>
+<li>Let's say WebServer actively closes the connection after sending the necessary data. So the socket in question changes out of <code>TIME_WAIT</code> state and takes a note of the last TCP Timestamp it received from <code>NAT</code> device IP(since Client 1's IP is NAT'ed by the <code>NAT</code> device).</li>
+<li>Now, if Client 2 tries to connect to the WebServer A by sending a <code>SYN</code> packet, and if its TCP timestamp value happens to be smaller than Client 1’s, the Timestamp value is compared to the previously seen timestamp by the WebServer A and on seeing that the new timestamp is smaller than the previous one, the <mark><code>SYN</code> is dropped</mark>.</li>
+<li>Client 2 is unable to communicate with the WebServer until the <code>TIME_WAIT</code> period expires.</li>
+</ul>
+
+<h3 id="howtofixit">How to fix it?</h3>
+
+<pre><code>$ sysctl net.ipv4.tcp_tw_recycle
+net.ipv4.tcp_tw_recycle = 1  
+</code></pre>
+
+<p>Modify the value for the configuration in the file to 0. You need to have root access to do that.  </p>
+
+<pre><code>$ cat /etc/sysctl.conf | grep tcp_tw_recycle
+net.ipv4.tcp_tw_recycle = 0
+
+$ sysctl -p /etc/sysctl.conf
+</code></pre>
+
+<hr>
+
+<p>Since packets are dropped, the client is actually waiting for a response back until it times-out. And that is the same thing which was happening with us particularly. Random requests would start timing out and the problem would get fixed on its own after few seconds. And when we reached out to FreeCharge's team, they were unable to trace any calls to their application during that window, since the request never the application at the backend of the WebServer, the <code>SYN</code> packets were just being dropped. After careful research and help from Shrey Sinha(Head of Infrastructure @ Zomato) and FreeCharge's team, we were able to get the problem fixed.</p>
+
+<p><strong>Further Reading :</strong></p>
+
+<ol>
+<li><a href="http://slashtwentyfour.net/2016-09-24-tcp_tw_recycle-dangers/">http://slashtwentyfour.net/2016-09-24-tcp_tw_recycle-dangers/</a> - The article also mentions about a script which the author wrote to find the number broken servers on internet with such issue.  </li>
+<li><a href="https://vincent.bernat.im/en/blog/2014-tcp-time-wait-state-linux">https://vincent.bernat.im/en/blog/2014-tcp-time-wait-state-linux</a> - This article also mentions about the effects and use of <code>tcp_tw_reuse</code> on client and server end.</li>
+</ol>]]></content:encoded></item><item><title><![CDATA[TCP Connection 101]]></title><description><![CDATA[A concise documentation on TCP Connection States. By : Mohak Kataria]]></description><link>https://mohakkataria.github.io/tcp-connection-101/</link><guid isPermaLink="false">0082b9a5-0f37-4eec-b9f8-31e8dd0f9600</guid><category><![CDATA[devops]]></category><category><![CDATA[tcp]]></category><category><![CDATA[zomato]]></category><dc:creator><![CDATA[Mohak Kataria]]></dc:creator><pubDate>Fri, 23 Jun 2017 11:29:00 GMT</pubDate><content:encoded><![CDATA[<p>You must have heard of TCP somewhere or the other if you have been engaged with API development and have basic knowledge as to how the code you write works on the web. But the deeper knowledge is how the data for request and the response is transferred across servers. Well Transmission Control Protocol a.k.a. TCP comes to rescue. For those well versed with <a href="https://en.wikipedia.org/wiki/OSI_model">OSI model</a>, it is a protocol for Transport Layer. Nearly every Internet-connected device “talks” TCP and the whole Internet relies on it.</p>
+
+<h3 id="tcpconnectionstates">TCP Connection States</h3>
+
+<p>The most common states are : <code>LISTEN</code>, <code>CLOSED</code> and <code>ESTABLISHED</code>. Most of the developers don’t know and also don't need to know more about TCP states, because this is what any application really cares about. However, a lot of stuff happens behind the scenes in the lifecycle of a TCP connection.</p>
+
+<p>In case you want to view all the tcp connections on your system, you can use <code>netstat</code> or <code>ss</code> as :</p>
+
+<pre><code>$ netstat -t
+Active Internet connections (w/o servers)  
+Proto Recv-Q Send-Q Local Address           Foreign Address         State  
+tcp        0      0 localhost:49667         localhost:afs3-kaserver ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-233.ap-:39441 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-185.ap-:54707 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-25.ap-s:33442 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27302 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-143.ap-s:7890 ESTABLISHED  
+tcp        0      0 ip-10-0-7-244.ap-:33510 ip-10-0-2-189.ap-:27017 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-185.ap-:54739 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-7-143.ap-s:7892 ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27118 ESTABLISHED  
+tcp        0      0 ip-10-0-7-244.ap-:32902 collector-4.newre:https TIME_WAIT  
+tcp        0      0 ip-10-0-7-244.ap-:57817 collector-2.newre:https TIME_WAIT  
+tcp        0      0 localhost:40494         localhost:afs3-vlserver ESTABLISHED  
+tcp        0      0 localhost:50019         localhost:afs3-kaserver ESTABLISHED  
+tcp        0      0 ip-10-0:afs3-fileserver ip-10-0-1-78.ap-s:27304 TIME_WAIT  
+...
+
+$ss -t
+State      Recv-Q Send-Q   Local Address:Port           Peer Address:Port  
+ESTAB      0      0        127.0.0.1:49667              127.0.0.1:afs3-kaserver  
+ESTAB      0      0        10.0.7.244:afs3-fileserver   10.0.7.233:41267  
+ESTAB      0      0        10.0.7.244:afs3-fileserver   10.0.7.233:39441  
+...
+</code></pre>
+
+<h5 id="connectioninitiation">Connection Initiation</h5>
+
+<p>Connection initiation is a <mark>three-way handshake</mark>. Let's say that the party which initiates the connection is the client and the one that accepts the connection is the server.</p>
+
+<ul>
+<li>Prerequisite : A server with a listener. The listener will listen on incoming connections on a specific port. This state is represented as <code>LISTEN</code>.</li>
+<li>The client sends a <code>SYN</code> packet to the server and changes it's own state to  <code>SYN-SENT</code>.</li>
+<li>The server will then acknowledge the <code>SYN</code> and send a <code>SYN-ACK</code> in response to the client. </li>
+<li>The client on receipt of <code>SYN-ACK</code> changes its connection state to  <code>SYN-RECEIVED</code>.</li>
+<li>If everything worked properly, the client will reply with an acknowledgement <code>ACK</code> and then the connection is marked as <code>ESTABLISHED</code> on both end-points.</li>
+</ul>
+
+<figure>  
+<img src="https://mohakkataria.github.io/content/images/2017/06/imgonline-com-ua-progressiveh5h0pu3pFm4g.jpg" alt="">
+<figcaption>Reference : <a href="https://blog.confirm.ch/tcp-connection-states/">https://blog.confirm.ch/tcp-connection-states/</a></figcaption>  
+</figure>
+
+<h5 id="datatransfer">Data Transfer</h5>
+
+<p>Now the data transfer can happen between client and the server. Each party sends some data in packets and the other party responds with acknowledgement <code>ACK</code> for the data packet received.</p>
+
+<h5 id="connectiontermination">Connection Termination</h5>
+
+<p>Either of client or server can terminate the connection if they are finished with the data exchange or timeout happens or variety of other reasons. However, it can not be dropped because their other end-point needs to know about the termination. Terminating a connection is a <mark>four-way handshake</mark>. And because each end-point is terminating the connection independently. It doesn’t matter which end-point starts the termination, because both of them will change their states accordingly with the information being sent to the other party about termination. Let's assume the client starts the termination.  </p>
+
+<figure>  
+<img src="https://mohakkataria.github.io/content/images/2017/06/imgonline-com-ua-progressiveAYXURwLHrBFb.jpg" alt="">
+<figcaption>Reference : <a href="https://blog.confirm.ch/tcp-connection-states/">https://blog.confirm.ch/tcp-connection-states/</a></figcaption>  
+</figure>
+
+<ul>
+<li>The client sends a <code>FIN</code> packet to the server and changes its state to  <code>FIN-WAIT-1</code>.</li>
+<li>The server receives the termination request from the client and responds with an acknowledgement <code>ACK</code>.</li>
+<li>After sending the response, the server will change its state to <code>CLOSE-WAIT</code> state.</li>
+<li>As soon as the client receives this acknowledgement from the server, it will go to the <code>FIN-WAIT-2</code> state.</li>
+</ul>
+
+<p>In the above process, the connection is terminated from a client point of view, the server is yet to terminate its connection. This happens right after the server sent its last <code>ACK</code>.</p>
+
+<ul>
+<li>The server is in the <code>CLOSE-WAIT</code> state and it will independently follow up with a <code>FIN</code>, and updates it's state to <code>LAST-ACK</code>.</li>
+<li>Now the client receives the termination request and replies with an  <code>ACK</code>, which results in a <code>TIME-WAIT</code> state.</li>
+<li>The server is now finished and changes it's connection state to <code>CLOSED</code> immediately.</li>
+<li>The client stays in the <code>TIME-WAIT</code> state for a maximum of four minutes (defined by RFC793 and the maximum segment lifetime, read further for more details) before setting the connection to <code>CLOSED</code> as well.</li>
+</ul>
+
+<h5 id="timewait">TIME-WAIT ???</h5>
+
+<p>Now all this is fairly easy but there might be a question in mind that why is <code>TIME-WAIT</code> necessary ? If both client and server are terminating the connection mutually and gracefully, why does <code>TIME-WAIT</code> exist ?</p>
+
+<p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers. When a duplicate packet from the first connection is delayed in the network and arrives at the second connection when its sequence number is in the second connection’s window, there is no way for the endpoints in the second connection to determine that the delayed packet contains data from the first connection. The situation is shown below : </p>
+
+<p><img src="https://mohakkataria.github.io/content/images/2017/06/fig1.svg" alt=""></p>
+
+<ul>
+<li>TCP avoids this condition by blocking any second connection between these address/port pairs until one can assume that all duplicates must have disappeared. </li>
+<li>Connection blocking is implemented by holding a <code>TIME-WAIT TCB(TCP Control Block)</code> at one endpoint and checking incoming connection requests to ensure that no new connection is established between the blocked addresses and ports. </li>
+<li>The TCB is held for twice the <code>Maximum Segment Lifetime (MSL)</code>. The MSL is defined as the longest period of time that a packet can remain undelivered in the network.</li>
+<li>Originally, the TTL field of an IP packet was the amount of time the packet could remain undelivered, but in practice the field has become a hop count. </li>
+<li>Therefore, the MSL is an estimate rather than a guarantee. Under most conditions waiting 2 x MSL is sufficient to drain duplicates, but they can and do arrive after that time. The chance of a duplicate arriving after 2 x MSL is greater if MSL is smaller.</li>
+</ul>
+
+<p>Check <a href="https://tools.ietf.org/html/draft-faber-time-wait-avoidance-00">this</a> out for more details about the effects of TIME-WAIT on busy servers, persistent connections and avoidance techniques.</p>
+
+<p>I can go into more detail but that tends to be a topic of research in the field of Computer Networks and Communications. Moreover, this article is supposed to act as prequel to an article cum case study as observed during my time at <code>Zomato</code>. Click <a href="https://mohakkataria.github.io/the-curious-case-of-tcp_tw_recycle">here</a> to read the next article on <code>The Curious Case of "tcp_tw_recycle"</code>.</p>]]></content:encoded></item><item><title><![CDATA[Rate Limiting with Nginx]]></title><description><![CDATA[Insight into how nginx can be used for API/web level rate limiting. 
+By : Mohak Kataria]]></description><link>https://mohakkataria.github.io/rate-limiting-with-nginx/</link><guid isPermaLink="false">1155d120-4bc3-4724-9d1d-6c2b545ac85e</guid><category><![CDATA[nginx]]></category><category><![CDATA[devops]]></category><category><![CDATA[api]]></category><dc:creator><![CDATA[Mohak Kataria]]></dc:creator><pubDate>Sat, 10 Jun 2017 17:23:00 GMT</pubDate><media:content url="https://mohakkataria.github.io/content/images/2017/06/kibana42_apache.jpg" medium="image"/><content:encoded><![CDATA[<img src="https://mohakkataria.github.io/content/images/2017/06/kibana42_apache.jpg" alt="Rate Limiting with Nginx"><p>Now that you have landed at this article after reading the headline, I assume that you already know what Nginx is and why is it used in front of our backend servers/services as a reverse proxying agent. Well, in case you still landed at this article without that knowledge, fret not as I am attaching a small list of resources which can help you with that :</p>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Reverse_proxy">Wikipedia - Reverse Proxy</a></li>
+<li><a href="https://www.nginx.com/resources/glossary/reverse-proxy-server/">Nginx Docs - Reverse Proxy</a></li>
+<li><a href="http://www.jscape.com/blog/bid/87783/Forward-Proxy-vs-Reverse-Proxy">Forward v/s Reverse Proxy</a></li>
+</ul>
+
+<p>So now we are at a place where we can start with the real deal of learning as to how can one use nginx for rate limiting the traffic to your website/API. This will also work even when using behind a load balancer or when nginx is being used as one, till the actual IPs are passed in headers to nginx for it to differentiate between requests from different hosts. It is useful, if your site is hammered by a bot doing multiple requests per second and thus increasing your server load. With the <code>ngx_http_limit_req_module</code> you can define a rate limit, and if a visitor exceeds this rate, he will get a 503 error. The rate limiting is performed via "<a href="https://en.wikipedia.org/wiki/Leaky_bucket">Leaky Bucket</a>" algorithm usually employed in computer networks with bandwidth limitations. </p>
+
+<p>To start with, we first define a <code>limit_req_zone</code> in our nginx.conf as shown below. Now if you ask why is that necessary, the answer to that would be, Computer Science &amp; Logic 101 : We need to solve a problem of limiting traffic to an IP based on the traffic, but we need to know what the traffic is corresponding to every IP and then compute on the data basis our business need/logic as to when to limit the resources to that IP.</p>
+
+<pre><code class="language-http">    http {
+        limit_req_zone $binary_remote_addr zone=test:20m rate=10r/s;
+        ...
+
+        server {
+            ...
+</code></pre>
+
+<p>This sets the shared memory zone with the requisite rate of requests. Here the shared memory zone is called test and is allocated 20MB of storage. Instead of the variable <code>$remote_addr</code>, we use the variable <code>$binary_remote_addr</code> which reduces the size of the state to 64 bytes. There can be about 16,000 states in a 1MB zone, so 20MB allow for about 320,000 states, so this should be enough for your visitors, but you may change it depending on how much traffic you receive. The rate is limited to ten request per second(rps). Please note that rps must be an integer values. So half a request per second should be set as 30 rps. This configuration of setting the request zone must go inside the <code>http {}</code> container.</p>
+
+<p>After having defined a storage area to store the data, we use this to actually put rate limiting to use. This is done using the <code>limit_req</code> directive. One can use this directive in <code>http {}</code>, <code>server {}</code>, and <code>location {}</code> containers, but it is most useful in <code>location {}</code> containers that pass requests to your app servers (PHP-FPM, etc.) because otherwise, if you load a single page with lots of assets (images, CSS, and JavaScript files), you would probably exceed the given rate limit with a single page request.</p>
+
+<p>An example directive usage is as </p>
+
+<pre><code>        location ~ \.php$ {
+                ...
+                limit_req zone=test burst=10;
+                ...
+        }
+</code></pre>
+
+<p><br>
+<code>limit_req zone=test burst=10;</code> specifies that this rate limit belongs to the session storage area we defined before in the nginx.conf. Burst is nothing but a queue which means that if you exceed the rate limit, the following requests are delayed, and only if you have more requests waiting in the queue than specified in the burst parameter, will you get a 503 error like the image shown below or any other html page which has been defined in configuration or a default one by nginx :</p>
+
+<figure>  
+<img src="https://mohakkataria.github.io/content/images/2017/06/litespeed-503-error.gif" alt="Rate Limiting with Nginx">
+<figcaption>Sample 503 Error Page</figcaption>  
+</figure>
+
+<p>When rate limited, the nginx error logs will produce output similar to the following:</p>
+
+<pre>
+2016/10/20 17:28:46 [error] 30347#0: *55 limiting requests, excess: 5.658 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/test/results/?keyword=" 
+2016/10/20 17:28:46 [error] 30347#0: *55 limiting requests, excess: 5.273 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/test/results/?keyword=" 
+2016/10/20 17:28:47 [error] 30347#0: *55 limiting requests, excess: 5.508 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/test/results/?keyword=" 
+2016/10/20 17:28:47 [error] 30347#0: *55 limiting requests, excess: 5.200 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/test/results/?keyword=" 
+2016/10/20 17:28:48 [error] 30347#0: *55 limiting requests, excess: 5.567 by zone "test", client: 10.170.2.13, server: www.example.com, request: "GET /test/results/?keyword= HTTP/1.1", host: "test-site-www.example.com", referrer: "https://test-site-www.example.com/search/results/?keyword=" 
+</pre>
+
+<p>With this basic configuration, we have enabled rate limiting on our service. Wasn't it too simple? :)</p>
+
+<div class="tip">  
+PS : Don't forget to reload nginx after adding or making changes to configuration files for them to take effect using command :  
+`sudo service nginx reload` or similar on your OS.
+</div>]]></content:encoded></item></channel></rss>

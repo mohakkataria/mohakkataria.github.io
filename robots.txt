@@ -1,0 +1,3 @@
+User-agent: *
+Sitemap: https://mohakkataria.github.io/sitemap/sitemap.xml
+Disallow: /ghost/
